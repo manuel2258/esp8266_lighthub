@@ -10,7 +10,7 @@ class TimeManager:
     """
 
     def __init__(self):
-        self.request_new_time_timer = Timer(-1)
+        self.request_new_time_timer = Timer(1)
 
         start_time = self._get_current_time()
 
@@ -20,6 +20,8 @@ class TimeManager:
         self._is_active = False
 
         self._current_in_range = False
+
+        self._current_state = False
 
     def set_state(self, state):
         """
@@ -60,10 +62,15 @@ class TimeManager:
         :param state:
         :return:
         """
+        print("New time state: ", state)
+        if state is self._current_state:
+            return
         if state:
+            print("Enabled time update Timer")
             self.request_new_time_timer.init(period=60000, mode=Timer.PERIODIC, callback=self._update_time)
         else:
             self.request_new_time_timer.deinit()
+        self._current_state = state
 
     def _update_time(self, _):
         """
@@ -75,6 +82,7 @@ class TimeManager:
         for time_range in self._time_ranges:
             if time_range.in_range(self._current_time):
                 self._current_in_range = True
+                print(time_range, " is in range of the current time")
                 break
         else:
             self._current_in_range = False

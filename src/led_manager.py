@@ -16,9 +16,6 @@ class LedManager:
 
         self._current_color = (0, 0, 0)
 
-        self._current_active = False
-        self._last_active = False
-
         self._time_manager = time_manager
 
         self._clear_color()
@@ -28,8 +25,7 @@ class LedManager:
     def set_color(self, color_tuple):
         """
         Sets the current mode for the LED Stripe. Provide all needed values for each mode in the kwargs
-        :param new_mode:
-        :param kwargs:
+        :param color_tuple:
         :return:
         """
         self._current_color = color_tuple
@@ -46,19 +42,13 @@ class LedManager:
         """
         if self._current_mode == 1:
             if self._time_manager.in_time():
-                self._current_active = True
-                if self._current_active is not self._last_active:
-                    self._apply_color()
+                self._apply_color()
             else:
-                self._current_active = False
-                if self._current_active is not self._last_active:
-                    self._clear_color()
+                self._clear_color()
         elif self._current_mode == 2:
             pass
         elif self._current_mode == 3:
             pass
-
-        self._last_active = self._current_active
 
     def _apply_color(self):
         """
