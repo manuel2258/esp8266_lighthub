@@ -1,7 +1,8 @@
 import json
 import socket
 
-RESPONSE_HEADER = '''HTTP/1.1 200 OK\r\nPOST HTTP/1.1\r\nHost: 192.168.1.115\r\nContent-Type: text/json\r\nContent-Length: {length}\r\n\r\n'''
+RESPONSE_HEADER = '''HTTP/1.1 200 OK\r\nPOST HTTP/1.1\r\nHost: 192.168.1.115\r\nContent-Type: 
+text/json\r\nContent-Length: {length}\r\n\r\n '''
 
 
 class SocketHandler:

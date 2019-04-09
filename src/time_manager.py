@@ -1,67 +1,96 @@
 from machine import Timer
 import urequests
+from src.date_time import DateTime
+from src.helper import split_string_at_char
+
 
 class TimeManager:
+    """
+    Manages and updates the current time and check if a given DateRange is currently active
+    """
 
     def __init__(self):
-        # Timed LEDs
         self.request_new_time_timer = Timer(-1)
 
         start_time = self._get_current_time()
 
         self._last_time = start_time
         self._current_time = start_time
-        self._start_time = 0
-        self._end_time = 0
+        self._time_ranges = []
         self._is_active = False
 
+        self._current_in_range = False
+
     def set_state(self, state):
+        """
+        Sets whether the time_manager is enabled or disable, therefor if it makes update requests
+        :param state: Boolean if enabled or disabled
+        :return:
+        """
         self._set_timer_state(state)
 
     def in_time(self):
-        if self._start_time <= self._current_time < self._end_time:
-            if not self._is_active:
-                self._is_active = True
-            return True
-        if self._is_active:
-            self._is_active = False
-            self._current_time -= 24
-        return False
+        """
+        Checks whether the current
+        :return:
+        """
+        return self._current_in_range
 
-    def set_times(self, start_time, end_time):
-        self._start_time = start_time
-        self._end_time = end_time
+    def add_time_range(self, time_range):
+        """
+        Adds a new Time Range to the pool of checked Time Ranges
+        :param time_range: TimeRange object
+        :return:
+        """
+        print("Added a new DateRange: ", time_range)
+        self._time_ranges.append(time_range)
+
+    def remove_time_range(self, time_range):
+        """
+        Removes a given Time Range Object from the pool
+        :param time_range: TimeRange object
+        :return: True if removed, otherwise False
+        """
+        print("Removed a DateRange: ", time_range)
+        return self._time_ranges.remove(time_range)
 
     def _set_timer_state(self, state):
+        """
+        Switches the update timer on / off
+        :param state:
+        :return:
+        """
         if state:
             self.request_new_time_timer.init(period=60000, mode=Timer.PERIODIC, callback=self._update_time)
-            self._update_time(0)
         else:
             self.request_new_time_timer.deinit()
 
     def _update_time(self, _):
-        current_hour = self._get_current_time()
-        if current_hour != self._last_time:
-            self._current_time += 1
-        print("Got new time: {} -> [{}-{}] == {}".format(self._current_time,
-                                                         self._start_time,
-                                                         self._end_time,
-                                                         self.in_time()))
+        """
+        Updates the current time and checks if it in range of any TimeRange objects
+        :param _: Unimportant parameter needed by the Timer Callback
+        :return:
+        """
+        self._current_time = self._get_current_time()
+        for time_range in self._time_ranges:
+            if time_range.in_range(self._current_time):
+                self._current_in_range = True
+                break
+        else:
+            self._current_in_range = False
+
+        print("Got new time: ", self._current_time, " In Range: ", self._current_in_range)
 
     def _get_current_time(self):
         """
-        Gets the current time from the worldtimeapi
-        :return:
+        Gets and parses the current time from the world time api
+        :return: A DateTime objects representing the current time
         """
         response = urequests.get("http://worldtimeapi.org/api/ip")
         data = response.json()
         current_date = data["datetime"]
-        _, current_date = self._split_string_at_char(current_date, 'T')
-        current_hour, current_date = self._split_string_at_char(current_date, ':')
-        return int(current_hour)
-
-
-    @staticmethod
-    def _split_string_at_char(string, char):
-        index = string.find(char)
-        return string[:index], string[index+1:]
+        _, current_date = split_string_at_char(current_date, 'T')
+        current_hour, current_date = split_string_at_char(current_date, ':')
+        current_minute, current_date = split_string_at_char(current_date, ':')
+        current_time = DateTime(data['day_of_week'], current_hour, current_minute)
+        return current_time
