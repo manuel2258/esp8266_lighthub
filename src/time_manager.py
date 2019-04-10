@@ -1,7 +1,8 @@
 from machine import Timer
-import urequests
+
 from src.date_time import DateTime
 from src.helper import split_string_at_char
+from src.connection_handler import ConnectionHandler
 
 
 class TimeManager:
@@ -42,19 +43,42 @@ class TimeManager:
         """
         Adds a new Time Range to the pool of checked Time Ranges
         :param time_range: TimeRange object
-        :return:
+        :return: True if appended, otherwise False
         """
-        print("Added a new DateRange: ", time_range)
-        self._time_ranges.append(time_range)
+        containing, _ = self._get_equal_time_range_from_list(time_range)
+        if not containing:
+            self._time_ranges.append(time_range)
+            print("Added a new DateRange: ", time_range)
+        else:
+            print("Could not add a new DateRange, already containing: ", time_range)
+        return not containing
 
-    def remove_time_range(self, time_range):
+    def remove_time_range(self, other):
         """
         Removes a given Time Range Object from the pool
-        :param time_range: TimeRange object
+        :param other: TimeRange object
         :return: True if removed, otherwise False
         """
-        print("Removed a DateRange: ", time_range)
-        return self._time_ranges.remove(time_range)
+        containing, time_range = self._get_equal_time_range_from_list(other)
+        if containing:
+            self._time_ranges.remove(time_range)
+            print("Removed: ", other)
+        else:
+            print("Could not remove item: ", other)
+        return containing
+
+    def get_time_ranges(self):
+        return self._time_ranges
+
+    def clear_times(self):
+        self._time_ranges.clear()
+        print("Removed all times")
+
+    def _get_equal_time_range_from_list(self, other):
+        for time_range in self._time_ranges:
+            if time_range == other:
+                return True, time_range
+        return False, None
 
     def _set_timer_state(self, state):
         """
@@ -67,7 +91,7 @@ class TimeManager:
             return
         if state:
             print("Enabled time update Timer")
-            self.request_new_time_timer.init(period=60000, mode=Timer.PERIODIC, callback=self._update_time)
+            self.request_new_time_timer.init(period=60 * 1000, mode=Timer.PERIODIC, callback=self._update_time)
         else:
             self.request_new_time_timer.deinit()
         self._current_state = state
@@ -82,20 +106,19 @@ class TimeManager:
         for time_range in self._time_ranges:
             if time_range.in_range(self._current_time):
                 self._current_in_range = True
-                print(time_range, " is in range of the current time")
                 break
         else:
             self._current_in_range = False
 
         print("Got new time: ", self._current_time, " In Range: ", self._current_in_range)
 
-    def _get_current_time(self):
+    @staticmethod
+    def _get_current_time():
         """
         Gets and parses the current time from the world time api
         :return: A DateTime objects representing the current time
         """
-        response = urequests.get("http://worldtimeapi.org/api/ip")
-        data = response.json()
+        data = ConnectionHandler.make_get_request("http://worldtimeapi.org/api/ip")
         current_date = data["datetime"]
         _, current_date = split_string_at_char(current_date, 'T')
         current_hour, current_date = split_string_at_char(current_date, ':')

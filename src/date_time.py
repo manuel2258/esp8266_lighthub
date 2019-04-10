@@ -87,6 +87,20 @@ class DateRange:
         self._start = start
         self._end = end
 
+    def __str__(self):
+        """
+        Returns the string representation of the object
+        :return:
+        """
+        return "DateRange[{}, {}]".format(self._start, self._end)
+
+    def __eq__(self, other):
+        other_start, other_end = other.get_times()
+        return other_start == self._start and other_end == self._end
+
+    def get_times(self):
+        return self._start, self._end
+
     def in_range(self, datetime):
         """
         Checks if the given DateTime is in the range defined by the object
@@ -95,9 +109,9 @@ class DateRange:
         """
         return self._start <= datetime <= self._end
 
-    def __str__(self):
-        """
-        Returns the string representation of the object
-        :return:
-        """
-        return "DateRange[{}, {}]".format(self._start, self._end)
+    def get_time_dict(self):
+        s_d, s_h, s_m = self._start.get_time()
+        e_d, e_h, e_m = self._end.get_time()
+        return {'start_d': s_d, 'start_h': s_h, 'start_m': s_m, 'end_d': e_d, 'end_h': e_h, 'end_m': e_m}
+
+
