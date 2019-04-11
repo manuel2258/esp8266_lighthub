@@ -70,6 +70,13 @@ class DateTime:
         """
         return self._day, self._hour, self._minute
 
+    def get_short_name(self):
+        """
+        Creates the short name of the Date Time
+        :return: String short name
+        """
+        return str(self._day) + str(self._hour) + str(self._minute)
+
 
 class DateRange:
     """
@@ -98,6 +105,21 @@ class DateRange:
         other_start, other_end = other.get_times()
         return other_start == self._start and other_end == self._end
 
+    def load_from_json(self, data):
+        """
+        Generates start and end time from json
+        :return:
+        """
+        self._start = DateTime(data['s_d'], data['s_h'], data['s_m'])
+        self._end = DateTime(data['e_d'], data['e_h'], data['e_m'])
+
+    def get_short_name(self):
+        """
+        Creates the short name of the Date Range
+        :return: String short name
+        """
+        return self._start.get_short_name() + self._end.get_short_name()
+
     def get_times(self):
         return self._start, self._end
 
@@ -112,6 +134,6 @@ class DateRange:
     def get_time_dict(self):
         s_d, s_h, s_m = self._start.get_time()
         e_d, e_h, e_m = self._end.get_time()
-        return {'start_d': s_d, 'start_h': s_h, 'start_m': s_m, 'end_d': e_d, 'end_h': e_h, 'end_m': e_m}
+        return {'s_d': s_d, 's_h': s_h, 's_m': s_m, 'e_d': e_d, 'e_h': e_h, 'e_m': e_m}
 
 

@@ -1,8 +1,9 @@
 from machine import Timer
 
-from src.date_time import DateTime
+from src.date_time import DateTime, DateRange
 from src.helper import split_string_at_char
 from src.connection_handler import ConnectionHandler
+import src.json_helper as json_helper
 
 
 class TimeManager:
@@ -13,24 +14,32 @@ class TimeManager:
     def __init__(self):
         self.request_new_time_timer = Timer(1)
 
-        start_time = self._get_current_time()
+        saved_data = json_helper.load_json_from_endpoint("times")
 
-        self._last_time = start_time
-        self._current_time = start_time
         self._time_ranges = []
-        self._is_active = False
+        self._is_active = saved_data["state"]
+
+        # Loads the date ranges from the given json
+
+        for name, time_range in saved_data['time_ranges']:
+            new_time_range = DateRange(DateTime(0, 0, 0), DateTime(0, 0, 1))
+            new_time_range.load_from_json(time_range)
+            self._time_ranges.append(new_time_range)
 
         self._current_in_range = False
 
         self._current_state = False
 
-    def set_state(self, state):
+    def set_state(self, state, initializing=False):
         """
         Sets whether the time_manager is enabled or disable, therefor if it makes update requests
         :param state: Boolean if enabled or disabled
+        :param initializing: (Optional) If set it won't write the state to the file
         :return:
         """
         self._set_timer_state(state)
+        if not initializing:
+            json_helper.update_json_value("times", ["state"], state)
 
     def in_time(self):
         """
@@ -49,6 +58,12 @@ class TimeManager:
         if not containing:
             self._time_ranges.append(time_range)
             print("Added a new DateRange: ", time_range)
+            json_helper.update_json_value("times",
+                                          [
+                                              "time_ranges",
+                                              time_range.get_short_name()
+                                          ],
+                                          time_range.get_time_dict())
         else:
             print("Could not add a new DateRange, already containing: ", time_range)
         return not containing
@@ -68,9 +83,17 @@ class TimeManager:
         return containing
 
     def get_time_ranges(self):
+        """
+        Returns the Time Range list
+        :return:
+        """
         return self._time_ranges
 
     def clear_times(self):
+        """
+        Removes every Time Range from the local list
+        :return:
+        """
         self._time_ranges.clear()
         print("Removed all times")
 
@@ -102,15 +125,15 @@ class TimeManager:
         :param _: Unimportant parameter needed by the Timer Callback
         :return:
         """
-        self._current_time = self._get_current_time()
+        current_time = self._get_current_time()
         for time_range in self._time_ranges:
-            if time_range.in_range(self._current_time):
+            if time_range.in_range(current_time):
                 self._current_in_range = True
                 break
         else:
             self._current_in_range = False
 
-        print("Got new time: ", self._current_time, " In Range: ", self._current_in_range)
+        print("Got new time: ", current_time, " In Range: ", self._current_in_range)
 
     @staticmethod
     def _get_current_time():
