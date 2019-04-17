@@ -14,13 +14,9 @@ def load_json_from_endpoint(endpoint):
     :param endpoint: String referring to the file_name
     :return:
     """
-    try:
-        with open(BASE_PATH + endpoint) as file:
-            data = json.load(file)
-            return data, True
-    except FileNotFoundError:
-        print("Could not load from: ", endpoint)
-        return {}, False
+    with open(BASE_PATH + endpoint + ".json") as file:
+        data = json.load(file)
+    return data
 
 
 def update_json_value(endpoint, keys, value):
@@ -31,12 +27,14 @@ def update_json_value(endpoint, keys, value):
     :param value: The value that's supposed to be placed or updated
     :return: True if successful, otherwise False
     """
-    data, success = load_json_from_endpoint(endpoint)
-    if not success:
-        print("Could not found / update the file")
-        return False
-
-    for key in range(len(keys) - 1):
+    print("Updating {} in file {} with {}".format(keys, endpoint, value))
+    data = load_json_from_endpoint(endpoint)
+    dump_data = data
+    for i in range(len(keys) - 1):
+        key = keys[i]
+        if key not in data:
+            data[key] = {}
         data = data[key]
     data[keys[-1]] = value
+    json.dump(dump_data, open(BASE_PATH + endpoint + ".json", 'w'))
     return True

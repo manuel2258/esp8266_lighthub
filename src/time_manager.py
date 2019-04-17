@@ -14,32 +14,17 @@ class TimeManager:
     def __init__(self):
         self.request_new_time_timer = Timer(1)
 
-        saved_data = json_helper.load_json_from_endpoint("times")
-
         self._time_ranges = []
-        self._is_active = saved_data["state"]
-
-        # Loads the date ranges from the given json
-
-        for name, time_range in saved_data['time_ranges']:
-            new_time_range = DateRange(DateTime(0, 0, 0), DateTime(0, 0, 1))
-            new_time_range.load_from_json(time_range)
-            self._time_ranges.append(new_time_range)
-
         self._current_in_range = False
-
         self._current_state = False
 
-    def set_state(self, state, initializing=False):
+    def set_state(self, state):
         """
         Sets whether the time_manager is enabled or disable, therefor if it makes update requests
         :param state: Boolean if enabled or disabled
-        :param initializing: (Optional) If set it won't write the state to the file
         :return:
         """
         self._set_timer_state(state)
-        if not initializing:
-            json_helper.update_json_value("times", ["state"], state)
 
     def in_time(self):
         """
@@ -48,22 +33,24 @@ class TimeManager:
         """
         return self._current_in_range
 
-    def add_time_range(self, time_range):
+    def add_time_range(self, time_range, initializing=False):
         """
         Adds a new Time Range to the pool of checked Time Ranges
         :param time_range: TimeRange object
+        :param initializing:
         :return: True if appended, otherwise False
         """
         containing, _ = self._get_equal_time_range_from_list(time_range)
         if not containing:
             self._time_ranges.append(time_range)
-            print("Added a new DateRange: ", time_range)
-            json_helper.update_json_value("times",
-                                          [
-                                              "time_ranges",
-                                              time_range.get_short_name()
-                                          ],
-                                          time_range.get_time_dict())
+            print("Added a new DateRange:", time_range)
+            if not initializing:
+                json_helper.update_json_value("led_config",
+                                              [
+                                                  "time_ranges",
+                                                  time_range.get_short_name()
+                                              ],
+                                              time_range.get_time_dict())
         else:
             print("Could not add a new DateRange, already containing: ", time_range)
         return not containing
@@ -79,7 +66,7 @@ class TimeManager:
             self._time_ranges.remove(time_range)
             print("Removed: ", other)
         else:
-            print("Could not remove item: ", other)
+            print("Could not remove item: ", other)     # TODO Add config removal
         return containing
 
     def get_time_ranges(self):
@@ -95,6 +82,7 @@ class TimeManager:
         :return:
         """
         self._time_ranges.clear()
+        json_helper.update_json_value("led_config", ["time_ranges"], {})
         print("Removed all times")
 
     def _get_equal_time_range_from_list(self, other):
@@ -109,7 +97,7 @@ class TimeManager:
         :param state:
         :return:
         """
-        print("New time state: ", state)
+        print("New time state:", state)
         if state is self._current_state:
             return
         if state:
@@ -133,7 +121,7 @@ class TimeManager:
         else:
             self._current_in_range = False
 
-        print("Got new time: ", current_time, " In Range: ", self._current_in_range)
+        print("Got new time:", current_time, " In Range:", self._current_in_range)
 
     @staticmethod
     def _get_current_time():

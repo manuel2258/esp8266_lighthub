@@ -18,7 +18,7 @@ class ConnectionHandler:
         self._socket.bind(address)
         self._socket.listen(1)
         self._socket.setblocking(False)
-        self._socket.settimeout(1)
+        self._socket.settimeout(5)
 
         self._task_manager = task_manager
 
@@ -49,14 +49,16 @@ class ConnectionHandler:
         _ = client.recv(1024)
         data_raw = client.recv(1024)
         data_json = json.loads(json.loads(data_raw))
-        if data_json['load']['request_type'] == 'post':
-            self._task_manager.on_new_post(data_json['load'])
-            return_data = json.dumps('{"executed": True}')
-        else:
+        request_type = data_json['load']['request_type']
+        if request_type == 'get':
             return_data = self._task_manager.on_get_request(data_json['load'])
+        else:
+            return_data = json.dumps('{"received": True}')
         client.sendall(RESPONSE_HEADER.format(length=len(return_data)))
         client.sendall(return_data)
         client.close()
+        if request_type == 'post':
+            self._task_manager.on_new_post(data_json['load'])
 
     @staticmethod
     def make_get_request(url):

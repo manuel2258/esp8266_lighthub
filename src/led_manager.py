@@ -1,5 +1,7 @@
-from machine import Pin, Timer
+from machine import Pin
 from neopixel import NeoPixel
+
+import src.json_helper as json_helper
 
 
 class LedManager:
@@ -11,33 +13,39 @@ class LedManager:
         # Init the rgb strip
         pin = Pin(pin_number, Pin.OUT)
         self._neo_pixel = NeoPixel(pin, 48)
-
-        self._current_mode = 1   # 0=static, 1=timed, 2=timed_home, 3=home
-
+        self._current_mode = 0   # 0=static, 1=timed, 2=timed_home, 3=home
         self._current_color = (0, 0, 0)
-
         self._time_manager = time_manager
 
         self._clear_color()
 
     # Public API
 
-    def set_color(self, color_tuple):
+    def set_color(self, color_tuple, initializing=False):
         """
         Sets the current mode for the LED Stripe. Provide all needed values for each mode in the kwargs
         :param color_tuple:
+        :param initializing:
         :return:
         """
         self._current_color = color_tuple
+        if not initializing:
+            json_helper.update_json_value('led_config', ['color'],
+                                          {'r': color_tuple[0], 'g': color_tuple[1], 'b': color_tuple[2]})
 
-    def set_mode(self, mode):
-        self._current_mode = mode
+    def set_mode(self, mode, initializing=False):
+        self._current_mode = int(mode)
         if self._current_mode == 0:
             self._apply_color()
+            self._time_manager.set_state(False)
+        else:
+            self._time_manager.set_state(True)
+        if not initializing:
+            json_helper.update_json_value('led_config', ['mode'], mode)
 
     def update(self):
         """
-        Updates the LED Stripe. Call that one every frame!
+        Updates the LED Stripe. Should be called regularly
         :return:
         """
         if self._current_mode == 1:

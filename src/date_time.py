@@ -129,7 +129,7 @@ class DateRange:
         :param datetime: The to check DateTime
         :return: True if in range, False otherwise
         """
-        return self._start <= datetime <= self._end
+        return self._start <= datetime < self._end
 
     def get_time_dict(self):
         s_d, s_h, s_m = self._start.get_time()

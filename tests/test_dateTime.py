@@ -61,8 +61,8 @@ class TestDateTime:
 class TestDateRange:
 
     def test_in_range(self):
-        sut = DateRange(DateTime(0, 0, 0), DateTime(0, 2, 0))
-        assert sut.in_range(DateTime(0, 1, 0))
+        sut = DateRange(DateTime(3, 22, 0), DateTime(3, 24, 0))
+        assert sut.in_range(DateTime(3, 23, 0))
 
     def test_not_in_range(self):
         sut = DateRange(DateTime(0, 0, 0), DateTime(0, 1, 0))
