@@ -15,20 +15,32 @@ class TaskHandler:
 
         # Initializes the time and led manager with values saved in the config file
 
-        config_data = json_helper.load_json_from_endpoint("led_config")
+        config_data, valid = json_helper.load_json_from_endpoint("led_config")
 
-        self.led_manager.set_mode(config_data['mode'], initializing=True)
+        if valid:
+            try:
+                self.led_manager.set_mode(config_data['mode'], initializing=True)
+            except KeyError:
+                print("KeyError while loading mode")
 
-        for name, time_range in config_data['time_ranges'].items():
-            new_time_range = DateRange(DateTime(0, 0, 0), DateTime(0, 0, 1))
-            new_time_range.load_from_json(time_range)
-            self.time_manager.add_time_range(new_time_range, initializing=True)
+            try:
+                for name, time_range in config_data['time_ranges'].items():
+                    new_time_range = DateRange(DateTime(0, 0, 0), DateTime(0, 0, 1))
+                    new_time_range.load_from_json(time_range)
+                    self.time_manager.add_time_range(new_time_range, initializing=True)
+            except KeyError:
+                print("KeyError while loading time_ranges")
 
-        color_data = config_data['color']
-        color_tuple = (color_data['r'], color_data['g'], color_data['b'])
-        self.led_manager.set_color(color_tuple, initializing=True)
+            try:
+                color_data = config_data['color']
+                color_tuple = (color_data['r'], color_data['g'], color_data['b'])
+                self.led_manager.set_color(color_tuple, initializing=True)
+            except KeyError:
+                print("KeyError while loading color")
 
-        print("Initialized components from led_config file")
+            print("Initialized components from led_config file")
+        else:
+            print("Invalid config file!")
 
     def on_new_post(self, data_dict):
         """
