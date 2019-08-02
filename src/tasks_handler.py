@@ -42,31 +42,7 @@ class TaskHandler:
         else:
             print("Invalid config file!")
 
-    def on_new_post(self, data_dict):
-        """
-        Gets called by the connection_handler when a post requests is incoming
-        :param data_dict: The dict containing the load sector of the sent data
-        :return:
-        """
-        task_type = data_dict['type']
-        data = data_dict['data']
-        if task_type == "set_mode":
-            self.led_manager.set_mode(data['new_mode'])
-        if task_type == "set_color":
-            color_tuple = (data['r'], data['g'], data['b'])
-            self.led_manager.set_color(color_tuple)
-        if task_type == "add_time":
-            new_data_range = DateRange(DateTime(data['start_d'], data['start_h'], data['start_m']),
-                                       DateTime(data['end_d'], data['end_h'], data['end_m']))
-            self.time_manager.add_time_range(new_data_range)
-        if task_type == "remove_time":
-            new_data_range = DateRange(DateTime(data['start_d'], data['start_h'], data['start_m']),
-                                       DateTime(data['end_d'], data['end_h'], data['end_m']))
-            self.time_manager.remove_time_range(new_data_range)
-        if task_type == "clear_times":
-            self.time_manager.clear_times()
-
-    def on_get_request(self, data_dict):
+    def on_request(self, data_dict):
         """
         Gets called by the connection_handler when a get requests is incoming
         :param data_dict: The dict containing the load sector of the sent data
@@ -74,9 +50,39 @@ class TaskHandler:
         """
         task_type = data_dict['type']
         data = data_dict['data']
-        if task_type == "get_time":
-            data_body = {'load': {'type': "time_ranges", 'data': []}}
-            time_ranges = self.time_manager.get_time_ranges()
-            for time_range in time_ranges:
-                data_body['load']['data'].append(time_range.get_time_dict())
-            return json.dumps(data_body)
+        print("Got request with data: {}".format(data))
+        if task_type == "get_times":
+            return self.time_manager.get_times_response()
+        elif task_type == "get_color":
+            current_color = self.led_manager.get_color()
+            return json.dumps({'load': {'type': "color", 'data': current_color}})
+        elif task_type == "get_mode":
+            current_mode = self.led_manager.get_mode()
+            return json.dumps({'load': {'type': "mode", 'data': current_mode}})
+        elif task_type == "is_lighthub":
+            return json.dumps({"is_lighthub": True})
+        elif task_type == "set_mode":
+            self.led_manager.set_mode(data['new_mode'])
+            return json.dumps({"received": True})
+        elif task_type == "set_color":
+            color_tuple = (data['r'], data['g'], data['b'])
+            self.led_manager.set_color(color_tuple)
+            return json.dumps({"received": True})
+        elif task_type == "add_time":
+            for time in data:
+                print(time)
+                new_data_range = DateRange(DateTime(time['s_d'], time['s_h'], time['s_m']),
+                                           DateTime(time['e_d'], time['e_h'], time['e_m']))
+                self.time_manager.add_time_range(new_data_range)
+            return self.time_manager.get_times_response()
+        elif task_type == "remove_time":
+            for time in data:
+                new_data_range = DateRange(DateTime(time['s_d'], time['s_h'], time['s_m']),
+                                           DateTime(time['e_d'], time['e_h'], time['e_m']))
+                self.time_manager.remove_time_range(new_data_range)
+            return self.time_manager.get_times_response()
+        elif task_type == "clear_times":
+            self.time_manager.clear_times()
+            return json.dumps({"received": True})
+        else:
+            print("Could not find task: {}".format(task_type))

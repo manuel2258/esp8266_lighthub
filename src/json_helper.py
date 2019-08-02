@@ -12,7 +12,7 @@ def load_json_from_endpoint(endpoint):
     Loads a json config from the given endpoint
     BASE_PATH + endpoint -> file_path
     :param endpoint: String referring to the file_name
-    :return:
+    :return: (to return json, successful)
     """
     print("Loading file:", BASE_PATH + endpoint + ".json")
     with open(BASE_PATH + endpoint + ".json") as file:
@@ -28,17 +28,35 @@ def update_json_value(endpoint, keys, value):
     :param endpoint: String referring to the file_name
     :param keys: A list off all keys in ascending order
     :param value: The value that's supposed to be placed or updated
-    :return: True if successful, otherwise False
+    :return:
+    """
+    dump_data, _ = load_json_from_endpoint(endpoint)
+    data = _get_data_at_key_end(dump_data, keys)
+    data[keys[-1]] = value
+    with open(BASE_PATH + endpoint + ".json", 'w') as file:
+        json.dump(dump_data, file)
+    print("Updated file {} with {}".format(endpoint, dump_data))
+
+
+def remove_item_from_json(endpoint, keys):
+    """
+    Loads the json from the endpoint and removes the given key from the last point
+    :param endpoint: The to load from endpoint
+    :param keys: A List of keys to nest to
+    :return:
     """
     data, _ = load_json_from_endpoint(endpoint)
-    dump_data = data
+    data = _get_data_at_key_end(data, keys)
+    data.remove(keys[-1])
+    with open(BASE_PATH + endpoint + ".json", 'w') as file:
+        json.dump(data, file)
+    print("Removed item {} -> new data {}".format(keys[-1], data))
+
+
+def _get_data_at_key_end(data, keys):
     for i in range(len(keys) - 1):
         key = keys[i]
         if key not in data:
             data[key] = {}
         data = data[key]
-    data[keys[-1]] = value
-    with open(BASE_PATH + endpoint + ".json", 'w') as file:
-        json.dump(dump_data, file)
-    print("Updated file {} with {}".format(endpoint, dump_data))
-    return True
+    return data

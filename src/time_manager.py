@@ -1,6 +1,7 @@
 from machine import Timer
+import json
 
-from src.date_time import DateTime, DateRange
+from src.date_time import DateTime
 from src.helper import split_string_at_char
 from src.connection_handler import ConnectionHandler
 import src.json_helper as json_helper
@@ -46,10 +47,7 @@ class TimeManager:
             print("Added a new DateRange:", time_range)
             if not initializing:
                 json_helper.update_json_value("led_config",
-                                              [
-                                                  "time_ranges",
-                                                  time_range.get_short_name()
-                                              ],
+                                              ["time_ranges", time_range.get_short_name()],
                                               time_range.get_time_dict())
         else:
             print("Could not add a new DateRange, already containing: ", time_range)
@@ -64,9 +62,10 @@ class TimeManager:
         containing, time_range = self._get_equal_time_range_from_list(other)
         if containing:
             self._time_ranges.remove(time_range)
+            json_helper.remove_item_from_json("led_config", ["time_ranges", other.get_short_name()])
             print("Removed: ", other)
         else:
-            print("Could not remove item: ", other)     # TODO Add config removal
+            print("Could not remove item: ", other)
         return containing
 
     def get_time_ranges(self):
@@ -84,6 +83,12 @@ class TimeManager:
         self._time_ranges.clear()
         json_helper.update_json_value("led_config", ["time_ranges"], {})
         print("Removed all times")
+
+    def get_times_response(self):
+        data_body = {'load': {'type': "time_ranges", 'data': []}}
+        for time_range in self.get_time_ranges():
+            data_body['load']['data'].append(time_range.get_time_dict())
+        return json.dumps(data_body)
 
     def _get_equal_time_range_from_list(self, other):
         for time_range in self._time_ranges:

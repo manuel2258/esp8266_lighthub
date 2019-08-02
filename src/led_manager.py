@@ -13,7 +13,7 @@ class LedManager:
         # Init the rgb strip
         pin = Pin(pin_number, Pin.OUT)
         self._neo_pixel = NeoPixel(pin, 48)
-        self._current_mode = 0   # 0=static, 1=timed, 2=timed_home, 3=home
+        self._current_mode = 0   # 0=static, 1=timed
         self._current_color = (0, 0, 0)
         self._time_manager = time_manager
 
@@ -23,15 +23,24 @@ class LedManager:
 
     def set_color(self, color_tuple, initializing=False):
         """
-        Sets the current mode for the LED Stripe. Provide all needed values for each mode in the kwargs
-        :param color_tuple:
-        :param initializing:
-        :return:
+        Sets the current color
+        :param color_tuple: The to set to color tuple (r,g,b)
+        :param initializing: Whether the device is currently initializing
+        :return: none
         """
         self._current_color = color_tuple
         if not initializing:
             json_helper.update_json_value('led_config', ['color'],
                                           {'r': color_tuple[0], 'g': color_tuple[1], 'b': color_tuple[2]})
+        if self._current_mode == 0:
+            self._apply_color()
+
+    def get_color(self):
+        """
+        Returns a rgb dict of the current set color
+        :return: The rgb dict
+        """
+        return {'r': self._current_color[0], 'g': self._current_color[1], 'b': self._current_color[2]}
 
     def set_mode(self, mode, initializing=False):
         self._current_mode = int(mode)
@@ -42,6 +51,10 @@ class LedManager:
             self._time_manager.set_state(True)
         if not initializing:
             json_helper.update_json_value('led_config', ['mode'], mode)
+        self.update()
+
+    def get_mode(self):
+        return self._current_mode
 
     def update(self):
         """
@@ -57,6 +70,8 @@ class LedManager:
             pass
         elif self._current_mode == 3:
             pass
+
+    # Private Helpers
 
     def _apply_color(self):
         """
