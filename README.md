@@ -46,11 +46,11 @@ Then we can check if eveything worked by
 
 Now we can start to flash the code, for that we have to put every single .py file onto the board  
 
-> ampy put boot.py
+> ampy put boot.py  
 > ampy put main.py
 
 At least we can also put entire folders and its content there
-> ampy put ./src/ /src/
+> ampy put ./src/ /src/  
 > ampy put ./configs/ /configs/
 
 After that the code should be flashed onto the board and be ready to go.
