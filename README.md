@@ -8,7 +8,7 @@ Android App: https://github.com/manuel2258/lighthub_client
 * A Micropython compatible ESP8266 microcontroller (tested on a WEMOS D1 MINI, other variants might require a bit of rewriting)
 * A WS2811/2/2B compatible LED Chain
 * 5V Powersupply (at least 1A, depends on the amount of LEDs)
-* A case TODO Link 3D Printable files
+* [A case](https://www.thingiverse.com/thing:3866419)
 * A simple reset button
 * (A 3.3V-5V Level Shifter, if your microcontroller outputs 3.3V and the LED wants 5V)
 * (A light defusing filter, to spread the LEDs light)
