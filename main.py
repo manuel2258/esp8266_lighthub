@@ -7,6 +7,8 @@ from src.led_manager import LedManager
 from src.time_manager import TimeManager
 import src.json_helper as json_helper
 
+print("\n")
+print("--- LIGHTHUB SERVER V1.0 ---")
 
 # Static defines
 LED_PIN = 0
@@ -53,9 +55,8 @@ else:
     mac = ubinascii.hexlify(network.WLAN().config('mac'), ':').decode()
     ap_if.config(essid="epsLightServer_{}".format(mac[:5]))
     ap_if.config(authmode=network.AUTH_OPEN)
-    
-    print("Created a new setup access point with following configs: ", ap_if.ifconfig())
 
+    print("Created a new setup access point with following configs: ", ap_if.ifconfig())
 
 # Initialize delegate objects
 time_manager = TimeManager()
@@ -64,11 +65,14 @@ task_handler = TaskHandler(led_manager, time_manager)
 connection_handler = ConnectionHandler(task_handler, not credentials_loaded)
 
 reset = False
+reset_counter = 100
 
 # Goes into the mainloop of updating the connection_handler and the led_manager
 while True:
     if reset:
-        machine.reset()
+        if reset <= 0:
+            machine.reset()
+        else:
+            reset_counter -= 1
     reset = connection_handler.update_socket()
     led_manager.update()
-

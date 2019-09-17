@@ -70,7 +70,6 @@ class TaskHandler:
             return json.dumps({"received": True})
         elif task_type == "add_time":
             for time in data:
-                print(time)
                 new_data_range = DateRange(DateTime(time['s_d'], time['s_h'], time['s_m']),
                                            DateTime(time['e_d'], time['e_h'], time['e_m']))
                 self.time_manager.add_time_range(new_data_range)

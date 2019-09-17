@@ -45,12 +45,12 @@ def remove_item_from_json(endpoint, keys):
     :param keys: A List of keys to nest to
     :return:
     """
-    data, _ = load_json_from_endpoint(endpoint)
-    data = _get_data_at_key_end(data, keys)
-    data.remove(keys[-1])
+    dump_data, _ = load_json_from_endpoint(endpoint)
+    data = _get_data_at_key_end(dump_data, keys)
+    del data[keys[-1]]
     with open(BASE_PATH + endpoint + ".json", 'w') as file:
-        json.dump(data, file)
-    print("Removed item {} -> new data {}".format(keys[-1], data))
+        json.dump(dump_data, file)
+    print("Removed item {} -> new data {}".format(keys[-1], dump_data))
 
 
 def _get_data_at_key_end(data, keys):
