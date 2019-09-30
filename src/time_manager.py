@@ -19,6 +19,10 @@ class TimeManager:
         self._current_in_range = False
         self._current_state = False
 
+        self._current_time = None
+
+        self._update_time(0)
+
     def set_state(self, state):
         """
         Sets whether the time_manager is enabled or disable, therefor if it makes update requests
@@ -90,6 +94,9 @@ class TimeManager:
             data_body['load']['data'].append(time_range.get_time_dict())
         return json.dumps(data_body)
 
+    def get_current_time(self):
+        return self._current_time
+
     def _get_equal_time_range_from_list(self, other):
         for time_range in self._time_ranges:
             if time_range == other:
@@ -118,15 +125,15 @@ class TimeManager:
         :param _: Unimportant parameter needed by the Timer Callback
         :return:
         """
-        current_time = self._get_current_time()
+        self._current_time = self._get_current_time()
         for time_range in self._time_ranges:
-            if time_range.in_range(current_time):
+            if time_range.in_range(self._current_time):
                 self._current_in_range = True
                 break
         else:
             self._current_in_range = False
 
-        print("Got new time:", current_time, " In Range:", self._current_in_range)
+        print("Got new time:", self._current_time, " In Range:", self._current_in_range)
 
     @staticmethod
     def _get_current_time():
@@ -134,10 +141,13 @@ class TimeManager:
         Gets and parses the current time from the world time api
         :return: A DateTime objects representing the current time
         """
-        data = ConnectionHandler.make_get_request("http://worldtimeapi.org/api/ip")
-        current_date = data["datetime"]
-        _, current_date = split_string_at_char(current_date, 'T')
-        current_hour, current_date = split_string_at_char(current_date, ':')
-        current_minute, current_date = split_string_at_char(current_date, ':')
-        current_time = DateTime(data['day_of_week'], current_hour, current_minute)
+        try:
+            data = ConnectionHandler.make_get_request("http://worldtimeapi.org/api/ip")
+            current_date = data["datetime"]
+            _, current_date = split_string_at_char(current_date, 'T')
+            current_hour, current_date = split_string_at_char(current_date, ':')
+            current_minute, current_date = split_string_at_char(current_date, ':')
+            current_time = DateTime(data['day_of_week'], current_hour, current_minute)
+        except OSError:
+            current_time = DateTime(0, 0, 0)
         return current_time

@@ -8,7 +8,7 @@ from src.time_manager import TimeManager
 import src.json_helper as json_helper
 
 print("\n")
-print("--- LIGHTHUB SERVER V1.0 ---")
+print("--- LIGHTHUB SERVER V1.1 ---")
 
 # Static defines
 LED_PIN = 0
@@ -65,14 +65,21 @@ task_handler = TaskHandler(led_manager, time_manager)
 connection_handler = ConnectionHandler(task_handler, not credentials_loaded)
 
 reset = False
-reset_counter = 100
+reset_counter = 1
 
 # Goes into the mainloop of updating the connection_handler and the led_manager
 while True:
+    new_reset = connection_handler.update_socket()
+    reset = new_reset if not reset else reset
+    current_time = led_manager.update()
+    _, hour, minute = current_time.get_time()
+    if hour == 4 and minute == 0:
+        reset_counter = 1
+        reset = True
+
     if reset:
-        if reset <= 0:
+        print("Current reset counter: {}".format(reset_counter))
+        if reset_counter <= 0:
             machine.reset()
         else:
             reset_counter -= 1
-    reset = connection_handler.update_socket()
-    led_manager.update()

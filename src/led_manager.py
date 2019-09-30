@@ -66,10 +66,7 @@ class LedManager:
                 self._apply_color()
             else:
                 self._clear_color()
-        elif self._current_mode == 2:
-            pass
-        elif self._current_mode == 3:
-            pass
+        return self._time_manager.get_current_time()
 
     # Private Helpers
 
