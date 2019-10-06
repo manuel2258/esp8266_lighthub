@@ -8,7 +8,7 @@ from src.time_manager import TimeManager
 import src.json_helper as json_helper
 
 print("\n")
-print("--- LIGHTHUB SERVER V1.1 ---")
+print("--- LIGHTHUB SERVER V1.2 ---")
 
 # Static defines
 LED_PIN = 0

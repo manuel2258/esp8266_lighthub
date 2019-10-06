@@ -35,7 +35,6 @@ def update_json_value(endpoint, keys, value):
     data[keys[-1]] = value
     with open(BASE_PATH + endpoint + ".json", 'w') as file:
         json.dump(dump_data, file)
-    print("Updated file {} with {}".format(endpoint, dump_data))
 
 
 def remove_item_from_json(endpoint, keys):
@@ -50,7 +49,6 @@ def remove_item_from_json(endpoint, keys):
     del data[keys[-1]]
     with open(BASE_PATH + endpoint + ".json", 'w') as file:
         json.dump(dump_data, file)
-    print("Removed item {} -> new data {}".format(keys[-1], dump_data))
 
 
 def _get_data_at_key_end(data, keys):
