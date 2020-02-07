@@ -42,6 +42,13 @@ class LedManager:
         """
         return {'r': self._current_color[0], 'g': self._current_color[1], 'b': self._current_color[2]}
 
+    def get_color_tuple(self):
+        """
+        Returns the current rgb color as a tuple
+        :return: The rgb tuple
+        """
+        return self._current_color
+
     def set_mode(self, mode, initializing=False):
         self._current_mode = int(mode)
         if self._current_mode == 0:

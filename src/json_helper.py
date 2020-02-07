@@ -18,7 +18,7 @@ def load_json_from_endpoint(endpoint):
     with open(BASE_PATH + endpoint + ".json") as file:
         try:
             return json.load(file), True
-        except ValueError:
+        except:
             return {}, False
 
 
