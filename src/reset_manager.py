@@ -38,7 +38,8 @@ class ResetManager:
         if self._block:
             return False
 
-        if time[1] == 4 and time[2] == 0:
+        if time[1] == 4 and time[2] == 0 and not self._hard_reset:
+            print("Starting daily reset")
             self._reset_counter = self._TTR
             self._silent_reset = True
             self.set_hard_reset(True)
